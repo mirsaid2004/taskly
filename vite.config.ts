@@ -20,13 +20,15 @@ export default defineConfig({
     }
   },
   test: {
+    exclude: ['**/node_modules/**', '**/dist/**'],
     projects: [
       {
         extends: true,
         test: {
           globals: true,
           setupFiles: './src/tests/setup.ts',
-          environment: 'jsdom'
+          environment: 'jsdom',
+          exclude: ['**/node_modules/**', '**/dist/**']
         }
       },
       {
