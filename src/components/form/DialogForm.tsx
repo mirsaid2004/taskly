@@ -75,7 +75,9 @@ function DialogForm() {
       }}
     >
       <Dialog.Trigger asChild>
-        <Button variant={'solid'}>Создать задачу</Button>
+        <Button variant={'solid'} data-testid="task-create">
+          Создать задачу
+        </Button>
       </Dialog.Trigger>
       <Portal>
         <Dialog.Backdrop />
@@ -92,7 +94,7 @@ function DialogForm() {
               </HStack>
 
               <DialogCloseTrigger asChild>
-                <IconButton variant="ghost" rounded={'full'} size="md" aria-label="Close dialog">
+                <IconButton variant="ghost" rounded={'full'} size="md" data-testid="close-dialog">
                   <Icon fontSize={'30px'} color={'gray.500'}>
                     <IoCloseCircleOutline />
                   </Icon>
@@ -132,12 +134,15 @@ function DialogForm() {
 
                 <form
                   id="task-form"
-                  onSubmit={handleSubmit((d) => mutation.mutate(d), () => {
-                    toaster.create({
-                      description: 'В некоторых полях есть проблемы',
-                      type: 'error'
-                    })
-                  })}
+                  onSubmit={handleSubmit(
+                    (d) => mutation.mutate(d),
+                    () => {
+                      toaster.create({
+                        description: 'В некоторых полях есть проблемы',
+                        type: 'error'
+                      })
+                    }
+                  )}
                 >
                   <VStack gap={4} align="stretch">
                     <Field
@@ -155,7 +160,7 @@ function DialogForm() {
                         {...register('context')}
                         {...getInputStyles(false, !!errors.context)}
                         height="100px"
-                      />
+                      ></Textarea>
                     </Field>
 
                     <HStack justify="space-between">
@@ -173,7 +178,9 @@ function DialogForm() {
                           >
                             <Switch.HiddenInput />
                             <Switch.Control />
-                            <Switch.Label>Назначить на команду</Switch.Label>
+                            <Switch.Label data-testid="team-toggle">
+                              Назначить на команду
+                            </Switch.Label>
                           </Switch.Root>
                         )}
                       />
@@ -183,6 +190,7 @@ function DialogForm() {
                         control={control}
                         render={({ field: { value, onChange } }) => (
                           <Checkbox.Root
+                            data-testid="routine-toggle"
                             rounded={'full'}
                             checked={value}
                             onCheckedChange={(e) => {
@@ -312,6 +320,7 @@ function DialogForm() {
               <Button
                 type="submit"
                 form="task-form"
+                data-testid="save-btn"
                 colorPalette="purple"
                 rounded="xl"
                 loading={mutation.isPending}

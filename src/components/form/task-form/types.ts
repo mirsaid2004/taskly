@@ -22,6 +22,7 @@ export interface SubComponentProps {
   control: Control<TaskFormValues>
   errors: FieldErrors<TaskFormValues>
   register?: UseFormRegister<TaskFormValues>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getInputStyles: (isOpen?: boolean, isInvalid?: boolean) => any
 }
 

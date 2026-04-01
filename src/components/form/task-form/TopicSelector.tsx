@@ -48,6 +48,7 @@ export function TopicSelector({
           >
             <SelectTrigger
               {...getInputStyles(isTopicOpen, !!errors.topic)}
+              data-testid="topic-select-trigger"
               px={3}
               py={1}
               width="full"
@@ -55,11 +56,12 @@ export function TopicSelector({
               <SelectValueText placeholder="Выберите тему для задачи" />
             </SelectTrigger>
             <SelectContent boxShadow="xl" zIndex={2000} width="var(--reference-width)">
-              {topicsCollection.items.map((item) => (
+              {topicsCollection.items.map((item, index) => (
                 <SelectItem
                   item={item}
                   key={item.value}
                   p={2}
+                  data-testid={`topic-option-${index}`}
                   rounded="lg"
                   _hover={{ bg: 'purple.50' }}
                 >
