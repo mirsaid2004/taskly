@@ -1,1 +1,14 @@
 @import "tailwindcss";
+
+/* Add this to your global CSS for 2 minutes */
+body {
+    margin: 0;
+    padding: 0;
+    pointer-events: auto !important;
+    overflow: auto !important;
+}
+
+*, *::before,
+ *::after {
+  box-sizing: border-box;
+}
