@@ -93,6 +93,7 @@ export function useTaskForm(onSuccess: () => void) {
         description: 'Форма успешно отправлена',
         type: 'success'
       })
+      form.reset()
       onSuccess()
     }
   })
