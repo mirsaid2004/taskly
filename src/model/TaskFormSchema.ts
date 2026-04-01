@@ -15,14 +15,23 @@ export const taskFormSchema = z.object({
   topic: z.string().min(1, 'Выберите тему'),
   tags: z.array(z.string()),
   files: z.array(z.any()).optional(),
-}).refine((data) => {
-  if (data.isRoutine && !data.routineData) {
-    return false;
+}).superRefine((data, ctx) => {
+  if (data.isRoutine) {
+    if (!data.routineData?.periodicity || data.routineData.periodicity.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Название рутинной задачи обязательно',
+        path: ['routineData', 'periodicity']
+      })
+    }
+    if (!data.routineData?.type || data.routineData.type.trim() === '') {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Выберите периодичность',
+        path: ['routineData', 'type']
+      })
+    }
   }
-  return true;
-}, {
-  message: 'Данные для регулярной задачи обязательны',
-  path: ['routineData'],
 })
 
 export type TaskFormValues = z.infer<typeof taskFormSchema>

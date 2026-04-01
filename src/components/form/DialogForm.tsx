@@ -14,17 +14,11 @@ import {
   For,
   SegmentGroup,
   Dialog,
-  DialogCloseTrigger
+  DialogCloseTrigger,
+  Textarea
 } from '@chakra-ui/react'
-import {
-  IoMdCheckboxOutline
-} from 'react-icons/io'
-import {
-  IoCloseCircleOutline,
-  IoSettingsOutline,
-  IoAttachOutline,
-  IoInformationCircleOutline
-} from 'react-icons/io5'
+import { IoMdCheckboxOutline } from 'react-icons/io'
+import { IoCloseCircleOutline, IoAttachOutline, IoInformationCircleOutline } from 'react-icons/io5'
 
 import { Controller } from 'react-hook-form'
 import { Field } from '@/components/ui/field'
@@ -43,7 +37,9 @@ import { AssigneeSelector } from './task-form/AssigneeSelector'
 import { TagsSelector } from './task-form/TagsSelector'
 import { TopicSelector } from './task-form/TopicSelector'
 import { RoutineDataFields } from './task-form/RoutineDataFields'
+import { toaster } from '@/components/ui/toaster'
 import { DateTimeFields } from './task-form/DateTimeFields'
+import { Tooltip } from '../ui/tooltip'
 
 const segmentIndicators = [
   { key: 'tasks', label: 'Создание задачи' },
@@ -53,7 +49,13 @@ const segmentIndicators = [
 function DialogForm() {
   const [open, setOpen] = useState(true)
   const {
-    form: { control, handleSubmit, register, formState: { errors } },
+    form: {
+      control,
+      handleSubmit,
+      register,
+      reset,
+      formState: { errors }
+    },
     states,
     actions,
     data,
@@ -63,7 +65,15 @@ function DialogForm() {
   } = useTaskForm(() => setOpen(false))
 
   return (
-    <Dialog.Root open={open} onOpenChange={(e) => setOpen(e.open)}>
+    <Dialog.Root
+      open={open}
+      onOpenChange={(e) => {
+        setOpen(e.open)
+        if (!e.open) {
+          reset()
+        }
+      }}
+    >
       <Dialog.Trigger asChild>
         <Button variant={'solid'}>Создать задачу</Button>
       </Dialog.Trigger>
@@ -120,82 +130,78 @@ function DialogForm() {
                   </For>
                 </SegmentGroup.Root>
 
-                <form id="task-form" onSubmit={handleSubmit((d) => mutation.mutate(d))}>
+                <form
+                  id="task-form"
+                  onSubmit={handleSubmit((d) => mutation.mutate(d), () => {
+                    toaster.create({
+                      description: 'В некоторых полях есть проблемы',
+                      type: 'error'
+                    })
+                  })}
+                >
                   <VStack gap={4} align="stretch">
                     <Field
                       invalid={!!errors.context}
                       label={
                         <HStack gap={1}>
-                          <Text>Содержание задачи</Text>
+                          <Text>Контекст задачи</Text>
                           <Text color="red.500">*</Text>
                         </HStack>
                       }
                       errorText={errors.context?.message}
                     >
-                      <Box position="relative" width="full">
-                        <textarea
-                          {...register('context')}
-                          placeholder="Что нужно сделать?"
-                          style={{
-                            width: '100%',
-                            minHeight: '100px',
-                            padding: '12px',
-                            borderRadius: '12px',
-                            border: `1px solid ${errors.context ? '#ef4444' : '#e2e8f0'}`,
-                            outline: 'none',
-                            fontSize: '14px',
-                            resize: 'none'
-                          }}
-                        />
-                        <HStack position="absolute" bottom={3} left={3} gap={2}>
-                          <IconButton variant="ghost" color="gray.400" size="xs">
-                            <IoSettingsOutline />
-                          </IconButton>
-                        </HStack>
-                      </Box>
+                      <Textarea
+                        placeholder="Выполнить какую-нибудь задачу"
+                        {...register('context')}
+                        {...getInputStyles(false, !!errors.context)}
+                        height="100px"
+                      />
                     </Field>
 
-                    <HStack gap={6} py={2} align="center">
-                      <HStack gap={2} align="center">
-                        <Switch.Root
-                          colorPalette="purple"
-                          checked={computed.assignToTeam}
-                          onCheckedChange={(e) => actions.handleTeamToggle(e.checked)}
-                          size="sm"
-                        >
-                          <Switch.HiddenInput />
-                          <Switch.Control>
-                            <Switch.Thumb />
-                          </Switch.Control>
-                        </Switch.Root>
-                        <Text fontSize="xs" color="gray.400" fontWeight="medium">
-                          Назначить на команду
-                        </Text>
-                      </HStack>
+                    <HStack justify="space-between">
+                      <Controller
+                        name="assignToTeam"
+                        control={control}
+                        render={({ field: { value, onChange } }) => (
+                          <Switch.Root
+                            colorPalette={'purple'}
+                            value={value ? 'on' : 'off'}
+                            onCheckedChange={(e) => {
+                              onChange(e.checked)
+                              actions.handleTeamToggle(!!e.checked)
+                            }}
+                          >
+                            <Switch.HiddenInput />
+                            <Switch.Control />
+                            <Switch.Label>Назначить на команду</Switch.Label>
+                          </Switch.Root>
+                        )}
+                      />
 
-                      <HStack gap={2} align="center">
-                        <Controller
-                          name="isRoutine"
-                          control={control}
-                          render={({ field }) => (
-                            <Checkbox.Root
-                              colorPalette="purple"
-                              checked={field.value}
-                              onCheckedChange={(e) => field.onChange(e.checked)}
-                              size="sm"
-                            >
-                              <Checkbox.HiddenInput />
-                              <Checkbox.Control />
-                            </Checkbox.Root>
-                          )}
-                        />
-                        <Text fontSize="xs" color="gray.400" fontWeight="medium">
-                          Рутинная задача
-                        </Text>
-                        <Icon color="purple.500" fontSize="16px">
-                          <IoInformationCircleOutline />
-                        </Icon>
-                      </HStack>
+                      <Controller
+                        name="isRoutine"
+                        control={control}
+                        render={({ field: { value, onChange } }) => (
+                          <Checkbox.Root
+                            rounded={'full'}
+                            checked={value}
+                            onCheckedChange={(e) => {
+                              onChange(e.checked)
+                            }}
+                          >
+                            <Checkbox.HiddenInput />
+                            <Checkbox.Control colorPalette="purple" rounded={'l3'} />
+                            <Checkbox.Label fontSize="sm" color="gray.600">
+                              Рутинная задача
+                            </Checkbox.Label>
+                            <Tooltip content="Рутинные задачи повторяются с определенной периодичностью и помогают автоматизировать регулярные процессы. Например, ежедневная проверка почты или еженедельное планирование задач.">
+                              <Icon color="purple.500">
+                                <IoInformationCircleOutline size={18} />
+                              </Icon>
+                            </Tooltip>
+                          </Checkbox.Root>
+                        )}
+                      />
                     </HStack>
 
                     {computed.isRoutine && (
@@ -265,9 +271,7 @@ function DialogForm() {
                           render={({ field }) => (
                             <FileUploadRoot
                               maxFiles={10}
-                              onFileChange={(details) =>
-                                field.onChange(details.acceptedFiles)
-                              }
+                              onFileChange={(details) => field.onChange(details.acceptedFiles)}
                             >
                               <FileUploadHiddenInput />
                               <FileUploadTrigger asChild>

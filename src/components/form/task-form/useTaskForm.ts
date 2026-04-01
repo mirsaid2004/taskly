@@ -1,10 +1,11 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery, useMutation } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useDebounce } from '@/hooks/useDebounce'
 import { taskFormSchema, type TaskFormValues } from '@/model/TaskFormSchema'
 import type { Topic, Tag, Assignee } from './types'
+import { toaster } from '@/components/ui/toaster'
 
 export function useTaskForm(onSuccess: () => void) {
   const [segmentValue, setSegmentValue] = useState<string | null>('tasks')
@@ -33,13 +34,6 @@ export function useTaskForm(onSuccess: () => void) {
   const isRoutine = form.watch('isRoutine')
   const assignToTeam = form.watch('assignToTeam')
 
-  const handleTeamToggle = (checked: boolean) => {
-    form.setValue('assignToTeam', checked)
-    if (checked && assigneesOptions.length > 0) {
-      form.setValue('assignees', assigneesOptions.map(a => a.id))
-    }
-  }
-
   const { data: topics = [] } = useQuery<Topic[]>({
     queryKey: ['topics'],
     queryFn: () => fetch('https://api.example.com/topics').then((res) => res.json())
@@ -57,6 +51,24 @@ export function useTaskForm(onSuccess: () => void) {
         `https://api.example.com/${assignToTeam ? 'teams' : 'participants'}?q=${debouncedSearchQuery}`
       ).then((res) => res.json())
   })
+
+  // Monitor isRoutine to clear routineData when unchecked
+  const [prevIsRoutine, setPrevIsRoutine] = useState(isRoutine)
+  useEffect(() => {
+    if (!isRoutine && prevIsRoutine) {
+      form.setValue('routineData', {
+        periodicity: '',
+        type: '',
+        description: ''
+      })
+    }
+    setPrevIsRoutine(isRoutine)
+  }, [isRoutine, prevIsRoutine, form])
+
+  const handleTeamToggle = (checked: boolean) => {
+    form.setValue('assignToTeam', checked)
+    form.setValue('assignees', [])
+  }
 
   const mutation = useMutation({
     mutationFn: async (data: TaskFormValues) => {
@@ -76,7 +88,13 @@ export function useTaskForm(onSuccess: () => void) {
       if (!response.ok) throw new Error('Failed to create task')
       return response.json()
     },
-    onSuccess
+    onSuccess: () => {
+      toaster.create({
+        description: 'Форма успешно отправлена',
+        type: 'success'
+      })
+      onSuccess()
+    }
   })
 
   const getInputStyles = (isOpen = false, isInvalid = false) => ({
@@ -99,6 +117,7 @@ export function useTaskForm(onSuccess: () => void) {
       control: form.control,
       handleSubmit: form.handleSubmit,
       register: form.register,
+      reset: form.reset,
       formState: form.formState
     },
     states: {
@@ -130,6 +149,6 @@ export function useTaskForm(onSuccess: () => void) {
     },
     mutation,
     getInputStyles,
-    register: form.register // also expose directly for convenience if needed
+    register: form.register
   }
 }

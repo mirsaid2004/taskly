@@ -1,4 +1,4 @@
-import { VStack, createListCollection, Input } from '@chakra-ui/react'
+import { VStack, Box, createListCollection, Input, Textarea, HStack, Text } from '@chakra-ui/react'
 import { Controller } from 'react-hook-form'
 import {
   SelectContent,
@@ -25,66 +25,94 @@ export function RoutineDataFields({
   })
 
   return (
-    <VStack
-      gap={4}
-      align="stretch"
-      mt={2}
+    <Box
       p={4}
-      bg="gray.50"
-      rounded="2xl"
       borderWidth="1px"
-      borderColor="gray.100"
+      borderStyle="dashed"
+      borderColor="purple.200"
+      rounded="2xl"
+      bg="purple.50"
     >
-      <Field
-        invalid={!!errors.routineData?.type}
-        label="Периодичность"
-        errorText={errors.routineData?.type?.message}
-      >
-        <Controller
-          name="routineData.type"
-          control={control}
-          render={({ field: { value, onChange, onBlur } }) => (
-            <SelectRoot
-              collection={periodicityCollection}
-              value={value ? [value] : []}
-              onOpenChange={(details) => setIsPeriodicityOpen(details.open)}
-              onValueChange={(details) => onChange(details.value[0])}
-              onExitComplete={() => onBlur()}
-              width="full"
-              size="sm"
-            >
-              <SelectTrigger
-                {...getInputStyles(isPeriodicityOpen, !!errors.routineData?.type)}
-                px={3}
-                py={1}
-                width="full"
+      <VStack gap={3} align="stretch">
+        <Field
+          invalid={!!errors.routineData?.periodicity}
+          label={
+            <HStack gap={1}>
+              <Text>Название рутинной задачи</Text>
+              <Text color="red.500">*</Text>
+            </HStack>
+          }
+          errorText={errors.routineData?.periodicity?.message}
+        >
+          <Input
+            placeholder="Укажите название"
+            size="sm"
+            {...getInputStyles(false, !!errors.routineData?.periodicity)}
+            {...control.register('routineData.periodicity')}
+          />
+        </Field>
+        <Field
+          label={
+            <HStack gap={1}>
+              <Text>Периодичность</Text>
+              <Text color="red.500">*</Text>
+            </HStack>
+          }
+          invalid={!!errors.routineData?.type}
+          errorText={errors.routineData?.type?.message}
+        >
+          <Controller
+            name="routineData.type"
+            control={control}
+            render={({ field }) => (
+              <SelectRoot
+                collection={periodicityCollection}
+                value={[field.value || '']}
+                onValueChange={(e) => field.onChange(e.value[0])}
+                open={isPeriodicityOpen}
+                onOpenChange={(e) => setIsPeriodicityOpen(e.open)}
+                size="sm"
+                width={'full'}
               >
-                <SelectValueText placeholder="Выберите частоту" />
-              </SelectTrigger>
-              <SelectContent rounded="2xl" boxShadow="xl" zIndex={2000}>
-                {periodicityCollection.items.map((item) => (
-                  <SelectItem item={item} key={item.value} rounded="lg">
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </SelectRoot>
-          )}
-        />
-      </Field>
-
-      <Field
-        invalid={!!errors.routineData?.description}
-        label="Описание повторения"
-        errorText={errors.routineData?.description?.message}
-      >
-        <Input
-          {...control.register('routineData.description')}
-          {...getInputStyles(false, !!errors.routineData?.description)}
-          placeholder="Например: каждый понедельник в 10:00"
-          px={4}
-        />
-      </Field>
-    </VStack>
+                <SelectTrigger
+                  {...getInputStyles(isPeriodicityOpen, !!errors.routineData?.type)}
+                  px={3}
+                  py={1}
+                  width="full"
+                  textAlign="left"
+                  display="flex"
+                  justifyContent="space-between"
+                  alignItems="center"
+                >
+                  <SelectValueText placeholder="Выберите периодичность" />
+                </SelectTrigger>
+                <SelectContent>
+                  {periodicityCollection.items.map((item) => (
+                    <SelectItem
+                      item={item}
+                      key={item.value}
+                      p={2}
+                      rounded="lg"
+                      _hover={{ bg: 'purple.50' }}
+                    >
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </SelectRoot>
+            )}
+          />
+        </Field>
+        <Field label="Описание">
+          <Textarea
+            placeholder="Описание рутинной задачи"
+            size="md"
+            height="100px"
+            {...getInputStyles(false, !!errors.routineData?.description)}
+            {...control.register('routineData.description')}
+          />
+        </Field>
+      </VStack>
+    </Box>
   )
 }
